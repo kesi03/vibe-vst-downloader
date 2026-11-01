@@ -45,10 +45,15 @@ vibe-fw --help
 ```
 Download sync firmware packages:
 
+Checks against the library.json which is saved locally to se if there are any updates.
+
 ```bash
 vibe-fw sync
+```
 
 Download available firmware packages:
+
+Downloads all of the firmware packages.
 
 ```bash
 vibe-fw download
@@ -56,15 +61,43 @@ vibe-fw download
 
 Install previously downloaded firmware:
 
+Installs all packages in the downloads folder.
+
 ```bash
 vibe-fw install
 ```
 
 Download and reinstall everything:
 
+Force a removal of everything and adds the latest firmware and library.json
+
 ```bash
 vibe-fw force
 ```
+
+Remove:
+
+All:
+
+Removes all the firmware in the firmware folder and the library,json
+
+```bash
+vibe-fw remove
+```
+
+Dry run:
+
+```bash
+vibe-fw remove --dry-run
+```
+
+A package:
+
+```bash
+vibe-fw remove --package funkydunky
+```
+
+
 
 ---
 
@@ -99,6 +132,91 @@ VIBE FM
 ```
 
 ---
+## Sync process
+
+1. **Fetch the current library** using `LibraryService.get_library()`.
+2. **Load the local library file** from `paths.library`. If it contains a dictionary, the service reads its `"library"` list; it also supports a top-level list.
+3. **Compare versions** by package ID. A package needs an update if it isn’t in the local library or its installed version differs from the available version.
+4. **Handle the no-update case:** print “No updates available.” and stop.
+5. **Ask what to update:** quit, select all updates, or enter package numbers. Invalid input or an empty selection stops the process.
+6. **Process each selected package:** back up its existing firmware files, download the package ZIP, then install it into the firmware directory.
+7. **Save the latest library data** to `paths.library` after all selected packages have been processed.
+8. **Report completion** by printing “Synchronisation completed.”
+
+## Sync flowchart
+
+```mermaid
+flowchart TD
+    A[Start sync] --> B[Fetch current library]
+    B --> C[Load local library]
+    C --> D[Compare package IDs and versions]
+    D --> E{Updates found?}
+
+    E -- No --> F[Print No updates available]
+    F --> Z[End]
+
+    E -- Yes --> G[Display available updates]
+    G --> H{User choice}
+
+    H -- Quit --> I[Print Cancelled]
+    I --> Z
+
+    H -- Select updates --> J[Read and validate package numbers]
+    J --> K{Valid selection?}
+    K -- No --> L[Print Invalid selection]
+    L --> Z
+    K -- Yes --> M{Any packages selected?}
+
+    H -- Download and install all --> N[Select all updates]
+    M -- No --> O[Print Nothing selected]
+    O --> Z
+    M -- Yes --> P[Process selected packages]
+    N --> P
+
+    P --> Q[Back up package]
+    Q --> R[Download package ZIP]
+    R --> S[Install package]
+    S --> T{More selected packages?}
+    T -- Yes --> Q
+    T -- No --> U[Save latest library to paths.library]
+    U --> V[Print Synchronisation completed]
+    V --> Z
+```
+
+## Removal process
+
+1. **Choose the removal mode:**
+   - Remove all matching firmware files and the library file using `remove_files()`.
+   - Remove only one package’s matching firmware files using `remove_package_files()`.
+2. **Find matching files:** the service looks for `.json`, `.wasm`, and `.aot` files in the firmware directory.
+3. **Include the library file:** in all-files mode, `library_file` is included if it exists. Package-specific removal does not affect the library file.
+4. **Preview or delete:** with `dry_run=True` (the default), the service returns the matching file paths without deleting them. With `dry_run=False`, it deletes the selected files.
+5. **Return the paths:** both methods return a list of files selected for removal, whether or not they were actually deleted.
+
+## Removal flowchart
+
+```mermaid
+flowchart TD
+    A[Start removal] --> B{Removal mode?}
+
+    B -- All files --> C[Find matching firmware files]
+    C --> D[Check whether library file exists]
+    D -- Yes --> E[Add library file to removal list]
+    D -- No --> F[Keep firmware files in removal list]
+    E --> G{Dry run?}
+    F --> G
+
+    B -- One package --> H[Check package files for each extension]
+    H --> I[Add existing package files to removal list]
+    I --> G
+
+    G -- Yes --> J[Return file list without deleting]
+    G -- No --> K[Delete files in removal list]
+    K --> L[Return file list]
+
+    J --> M[End]
+    L --> M
+```
 
 ## Download Process
 
