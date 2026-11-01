@@ -1,0 +1,164 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Version Increment
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - version
+
+      version:
+        description: Explicit version
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+
+  release:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.version.outputs.new }}
+
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Build Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Calculate Version
+        id: version
+        shell: bash
+        run: |
+
+          CURRENT=$(python - <<'PY'
+          import re
+
+          text=open(
+              "pyproject.toml",
+              encoding="utf-8"
+          ).read()
+
+          m=re.search(
+              r'^version\s*=\s*"([^"]+)"',
+              text,
+              re.M,
+          )
+
+          print(m.group(1))
+          PY
+          )
+
+          TYPE="${{ github.event.inputs.release_type }}"
+
+          if [ "$TYPE" = "version" ]; then
+
+            NEW="${{ github.event.inputs.version }}"
+
+          else
+
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+            case "$TYPE" in
+
+              major)
+                MAJOR=$((MAJOR+1))
+                MINOR=0
+                PATCH=0
+                ;;
+
+              minor)
+                MINOR=$((MINOR+1))
+                PATCH=0
+                ;;
+
+              patch)
+                PATCH=$((PATCH+1))
+                ;;
+
+            esac
+
+            NEW="${MAJOR}.${MINOR}.${PATCH}"
+
+          fi
+
+          echo "new=$NEW" >> $GITHUB_OUTPUT
+
+      - name: Update Version
+        env:
+          VERSION: ${{ steps.version.outputs.new }}
+        run: |
+
+          python - <<'PY'
+          import os
+          import re
+
+          version=os.environ["VERSION"]
+
+          path="pyproject.toml"
+
+          text=open(
+              path,
+              encoding="utf-8"
+          ).read()
+
+          text=re.sub(
+              r'^version\s*=\s*"[^"]+"',
+              f'version = "{version}"',
+              text,
+              flags=re.M,
+          )
+
+          open(
+              path,
+              "w",
+              encoding="utf-8",
+          ).write(text)
+          PY
+
+      - name: Build
+        run: |
+          python -m build
+
+      - name: Commit Version
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          git add pyproject.toml
+          git commit \
+            -m "release: v${{ steps.version.outputs.new }}" \
+            || true
+
+      - name: Tag
+        run: |
+          git tag v${{ steps.version.outputs.new }}
+
+      - name: Push
+        run: |
+          git push
+          git push --tags
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*

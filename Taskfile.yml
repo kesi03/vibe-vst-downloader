@@ -1,0 +1,125 @@
+version: "3"
+
+vars:
+  PACKAGE_NAME: vibe-firmware-manager
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+      
+  download:
+    desc: Download firmware updates
+    cmds:
+      - vibe-fw download
+
+  download:debug:
+    desc: Download firmware updates with output logged
+    cmds:
+      - vibe-fw download >> download.log 2>&1
+
+  install:
+    desc: Install downloaded firmware
+    cmds:
+      - vibe-fw install
+
+  sync:
+    desc: Sync firmware updates
+    cmds:
+      - vibe-fw sync
+
+  sync:debug:
+    desc: Sync firmware updates with output logged
+    cmds:
+      - vibe-fw sync >> sync.log 2>&1
+
+  force:
+    desc: Force download and install all firmware
+    cmds:
+      - vibe-fw force
+
+  remove:
+    desc: Remove firmware files
+    cmds:
+      - vibe-fw remove
+
+  remove:dry:
+    desc: Remove firmware files in dry run mode
+    cmds:
+      - vibe-fw remove --dry-run
+
+
+  remove:debug:
+    desc: Remove firmware files with output logged
+    cmds:
+      - vibe-fw remove >> remove.log 2>&1
+
+  run:
+    desc: Run module directly
+    cmds:
+      - python -m vibe_firmware
+
+  py:test:
+    desc: Run pytest
+    cmds:
+      - pytest
+
+  py:test:verbose:
+    desc: Run pytest verbose
+    cmds:
+      - pytest -v
+
+  py:build:
+    desc: Build wheel and source package
+    cmds:
+      - python -m build
+
+  py:publish:test:
+    desc: Publish to TestPyPI
+    cmds:
+      - python -m twine upload --repository testpypi dist/*
+
+  py:publish:
+    desc: Publish to PyPI
+    cmds:
+      - python -m twine upload dist/*
+
+  py:clean:
+    desc: Remove build files
+    cmds:
+      - powershell -Command "if(Test-Path build){Remove-Item build -Recurse -Force}"
+      - powershell -Command "if(Test-Path dist){Remove-Item dist -Recurse -Force}"
+
+  py:venv:
+    desc: Create virtual environment
+    cmds:
+      - python -m venv .venv
+
+  py:run:
+    desc: Run module directly
+    cmds:
+      - python -m vibe_firmware
+
+  py:publish-test:
+    desc: Publish to TestPyPI
+    cmds:
+      - python -m twine upload --repository testpypi dist/*
+
+  pip:install:
+    desc: Install package in editable mode
+    cmds:
+      - pip install -e .
+
+  pip:upgrade:
+    desc: Upgrade pip tools
+    cmds:
+      - python -m pip install --upgrade pip setuptools wheel build twine
+
+  pip:setup:
+    desc: Complete development setup
+    cmds:
+      - python -m venv .venv
+      - pip install --upgrade pip
+      - pip install -e .
+      - python -m twine upload --repository testpypi dist/*

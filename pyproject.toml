@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=80.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vibe-firmware-manager"
+version = "1.0.0"
+description = "Firmware download and installation manager for VIBE FM"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+
+authors = [
+    {name = "VIBE FM"}
+]
+
+keywords = [
+    "firmware",
+    "vibe-fm",
+    "wasm",
+    "embedded",
+    "package-manager"
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Environment :: Console"
+]
+
+dependencies = []
+
+[project.urls]
+Homepage = "https://thefirmwarehub.com"
+Documentation = "https://thefirmwarehub.com"
+Repository = "https://github.com/your-org/vibe-firmware-manager"
+
+[project.scripts]
+vibe-fw = "vibe_firmware.cli.commands:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
