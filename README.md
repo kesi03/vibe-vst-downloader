@@ -7,6 +7,7 @@ The application connects to The Firmware Hub, downloads available firmware packa
 ---
 
 ## Features
+✅ Sync firmware packages
 
 ✅ Download firmware packages
 
@@ -19,6 +20,8 @@ The application connects to The Firmware Hub, downloads available firmware packa
 ✅ Force download all firmware packages
 
 ✅ Force reinstall all firmware packages
+
+✅ Remove all
 
 ✅ Offline installation from cached packages
 
@@ -226,8 +229,26 @@ Downloaded ZIP files are stored in:
 %APPDATA%\VIBE FM\Downloads
 ```
 
-Downloads are retained so firmware can be installed later without requiring another download.
+The service retains downloaded ZIP files so firmware can be installed later without downloading them again. If a ZIP with the same package name and version already exists, the download overwrites it.
 
+1. **Ensure the destination exists:** create the destination directory and any missing parent directories.
+2. **Build the ZIP file path:** use the package name and version in the filename: `{package.name}-{package.version}.zip`.
+3. **Build the download URL:** combine `base_url` with `package.file_url`, removing any leading slash from `package.file_url`.
+4. **Fetch and save the file:** request the ZIP’s bytes through `HttpClient` and write them to the destination path.
+5. **Return the path:** return the path to the saved ZIP file.
+
+## Download Flowchart
+
+```mermaid
+flowchart TD
+    A[Start download] --> B[Create destination directory]
+    B --> C[Build ZIP filename from package name and version]
+    C --> D[Build download URL from base URL and package file URL]
+    D --> E[Fetch ZIP bytes using HttpClient]
+    E --> F[Write bytes to destination path]
+    F --> G[Return ZIP file path]
+    G --> H[End]
+```
 ---
 
 ## Supported Firmware Files
@@ -246,7 +267,7 @@ All other files contained within firmware packages are ignored.
 
 ## Backup Process
 
-Before replacing firmware files, the current firmware files are backed up.
+Before replacing firmware files, the current firmware files can be backed up to a timestamped directory under the backup root.
 
 Example:
 
@@ -258,8 +279,36 @@ Backup
     └── SynthOne.aot
 ```
 
-This allows firmware rollback if required.
+The service supports two backup modes:
 
+1. **Back up all firmware files:** `create_backup()` copies every `.json`, `.wasm`, and `.aot` file in the firmware directory.
+2. **Back up one package:** `create_package_backup()` copies only the matching files for the specified package, if they exist.
+3. **Create a timestamped folder:** both methods create a folder named with the current date and time in `YYYYMMDD-HHMMSS` format.
+4. **Preserve file metadata:** `shutil.copy2()` copies each file and its metadata.
+5. **Return the backup path:** each method returns the path to the created backup directory.
+
+This backup can be used to restore firmware files if a rollback is needed.
+
+## Backup Flowchart
+
+```mermaid
+flowchart TD
+    A[Start backup] --> B{Backup mode?}
+
+    B -- All firmware files --> C[Find .json, .wasm, and .aot files]
+    B -- One package --> D[Find matching package files with supported extensions]
+
+    C --> E[Create timestamped backup directory]
+    D --> E
+
+    E --> F{Matching files found?}
+    F -- Yes --> G[Copy files with metadata using shutil.copy2]
+    F -- No --> H[Leave backup directory empty]
+
+    G --> I[Return backup directory path]
+    H --> I
+    I --> J[End]
+```
 ---
 
 ## Force Install
