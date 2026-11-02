@@ -27,6 +27,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
+    environment: pypi
 
     outputs:
       version: ${{ steps.version.outputs.new }}
