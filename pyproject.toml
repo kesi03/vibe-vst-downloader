@@ -34,9 +34,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://thefirmwarehub.com"
-Documentation = "https://thefirmwarehub.com"
-Repository = "https://github.com/your-org/vibe-firmware-manager"
+Homepage = "https://github.com/kesi03/vibe-firmware-manager"
+Documentation = "https://github.com/kesi03/vibe-firmware-manager"
+Repository = "https://github.com/kesi03/vibe-firmware-manager"
 
 [project.scripts]
 vibe-fw = "vibe_firmware.cli.commands:main"
