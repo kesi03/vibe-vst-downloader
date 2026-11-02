@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vibe-firmware-manager"
-version = "1.0.0"
+version = "1.0.1"
 description = "Firmware download and installation manager for VIBE FM"
 readme = "README.md"
 requires-python = ">=3.11"
