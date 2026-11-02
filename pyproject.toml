@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vibe-firmware-manager"
-version = "1.0.0"
+version = "1.0.1"
 description = "Firmware download and installation manager for VIBE FM"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -34,9 +34,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://thefirmwarehub.com"
-Documentation = "https://thefirmwarehub.com"
-Repository = "https://github.com/your-org/vibe-firmware-manager"
+Homepage = "https://github.com/kesi03/vibe-firmware-manager"
+Documentation = "https://github.com/kesi03/vibe-firmware-manager"
+Repository = "https://github.com/kesi03/vibe-firmware-manager"
 
 [project.scripts]
 vibe-fw = "vibe_firmware.cli.commands:main"
