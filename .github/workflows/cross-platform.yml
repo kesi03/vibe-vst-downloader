@@ -37,31 +37,38 @@ jobs:
         run: |
           vibe-fw --help
 
+      - name: Set Download Folder
+        shell: bash
+        run: |
+          case "${{ runner.os }}" in
+            Windows)
+              echo "DOWNLOADS_DIR=$APPDATA/VIBE FM/Downloads" >> $GITHUB_ENV
+              ;;
+            macOS)
+              echo "DOWNLOADS_DIR=$HOME/Library/Application Support/VIBE FM/Downloads" >> $GITHUB_ENV
+              ;;
+            Linux)
+              echo "DOWNLOADS_DIR=$HOME/.local/share/VIBE FM/Downloads" >> $GITHUB_ENV
+              ;;
+          esac
+
       - name: Download Firmware
         shell: bash
         run: |
           vibe-fw download
 
-      - name: Verify Downloaded Packages
+      - name: Verify Downloads Exist
         shell: bash
         run: |
-          python - <<'PY'
-          from vibe_firmware.paths import AppPaths
+          echo "Checking: $DOWNLOADS_DIR"
 
-          paths = AppPaths()
+          find "$DOWNLOADS_DIR" -type f
 
-          downloads = paths.downloads
+          ZIP_COUNT=$(find "$DOWNLOADS_DIR" -name "*.zip" | wc -l)
 
-          print(f"Downloads folder: {downloads}")
+          if [ "$ZIP_COUNT" -eq 0 ]; then
+            echo "No firmware packages downloaded"
+            exit 1
+          fi
 
-          files = list(downloads.glob("*.zip"))
-
-          for file in files:
-              print(f"Found: {file.name}")
-
-          assert files, (
-              f"No firmware packages downloaded to {downloads}"
-          )
-
-          print(f"SUCCESS: {len(files)} package(s) downloaded")
-          PY
+          echo "Found $ZIP_COUNT downloaded package(s)"
