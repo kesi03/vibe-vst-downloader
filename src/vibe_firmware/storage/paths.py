@@ -1,14 +1,35 @@
 from pathlib import Path
+import platform
 import os
 
 APP_NAME = "VIBE FM"
 
 
 class AppPaths:
-
     @property
     def root(self) -> Path:
-        return Path(os.environ["APPDATA"]) / APP_NAME
+        system = platform.system()
+
+        if system == "Windows":
+            return Path(os.environ["APPDATA"]) / APP_NAME
+
+        if system == "Darwin":  # macOS
+            return (
+                Path.home()
+                / "Library"
+                / "Application Support"
+                / APP_NAME
+            )
+
+        if system == "Linux":
+            return (
+                Path.home()
+                / ".local"
+                / "share"
+                / APP_NAME
+            )
+
+        raise RuntimeError(f"Unsupported operating system: {system}")
 
     @property
     def downloads(self) -> Path:
@@ -27,23 +48,7 @@ class AppPaths:
         return self.root / "library.json"
 
     def create(self) -> None:
-
-        self.root.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        self.downloads.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        self.firmware.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        self.backups.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.downloads.mkdir(parents=True, exist_ok=True)
+        self.firmware.mkdir(parents=True, exist_ok=True)
+        self.backups.mkdir(parents=True, exist_ok=True)
