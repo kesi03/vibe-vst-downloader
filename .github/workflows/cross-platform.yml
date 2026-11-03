@@ -37,7 +37,31 @@ jobs:
         run: |
           vibe-fw --help
 
-      - name: Verify CLI
+      - name: Download Firmware
         shell: bash
         run: |
           vibe-fw download
+
+      - name: Verify Downloaded Packages
+        shell: bash
+        run: |
+          python - <<'PY'
+          from vibe_firmware.paths import AppPaths
+
+          paths = AppPaths()
+
+          downloads = paths.downloads
+
+          print(f"Downloads folder: {downloads}")
+
+          files = list(downloads.glob("*.zip"))
+
+          for file in files:
+              print(f"Found: {file.name}")
+
+          assert files, (
+              f"No firmware packages downloaded to {downloads}"
+          )
+
+          print(f"SUCCESS: {len(files)} package(s) downloaded")
+          PY
