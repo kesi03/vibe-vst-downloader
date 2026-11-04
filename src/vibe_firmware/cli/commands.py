@@ -2,49 +2,17 @@ from __future__ import annotations
 
 import argparse
 
-from vibe_firmware.constants import (
-    DOWNLOAD_BASE_URL,
-)
-
-from vibe_firmware.storage.paths import (
-    AppPaths,
-)
-
-from vibe_firmware.utils.http import (
-    HttpClient,
-)
-
-from vibe_firmware.storage.file_repository import (
-    FileRepository,
-)
-
-from vibe_firmware.services.library_service import (
-    LibraryService,
-)
-
-from vibe_firmware.services.download_service import (
-    DownloadService,
-)
-
-from vibe_firmware.services.install_service import (
-    InstallService,
-)
-
-from vibe_firmware.services.backup_service import (
-    BackupService,
-)
-
-from vibe_firmware.services.removal_service import (
-    RemovalService,
-)
-
-from vibe_firmware.services.firmware_service import (
-    FirmwareService,
-)
-
-from vibe_firmware.services.synch_service import (
-    SyncService,
-)
+from vibe_firmware.constants import DOWNLOAD_BASE_URL
+from vibe_firmware.storage.paths import AppPaths
+from vibe_firmware.utils.http import HttpClient
+from vibe_firmware.storage.file_repository import FileRepository
+from vibe_firmware.services.library_service import LibraryService
+from vibe_firmware.services.download_service import DownloadService
+from vibe_firmware.services.install_service import InstallService
+from vibe_firmware.services.backup_service import BackupService
+from vibe_firmware.services.removal_service import RemovalService
+from vibe_firmware.services.firmware_service import FirmwareService
+from vibe_firmware.services.synch_service import SyncService
 
 
 def main() -> int:
@@ -69,12 +37,6 @@ def main() -> int:
         help="Remove only this package's matching files",
     )
 
-    parser.add_argument(
-        "--yes",
-        action="store_true",
-        help="Actually delete files; without this, remove only previews",
-    )
-
     args = parser.parse_args()
 
     #
@@ -88,9 +50,7 @@ def main() -> int:
 
     repository = FileRepository()
 
-    library_service = LibraryService(
-        http,
-    )
+    library_service = LibraryService(http)
 
     download_service = DownloadService(
         http,
@@ -137,25 +97,22 @@ def main() -> int:
         sync_service.sync()
 
     elif args.command == "remove":
-        dry_run = not args.yes
 
         if args.package:
             files = removal_service.remove_package_files(
                 paths.firmware,
                 args.package,
-                dry_run=dry_run,
+                dry_run=False,
             )
         else:
             files = removal_service.remove_files(
                 paths.firmware,
                 paths.library,
-                dry_run=dry_run,
+                dry_run=False,
             )
 
-        action = "Would remove" if dry_run else "Removed"
-
         for file in files:
-            print(f"{action}: {file}")
+            print(f"Removed: {file}")
 
         if not files:
             print("No matching files found.")
