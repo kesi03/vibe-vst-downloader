@@ -2,8 +2,22 @@ from pathlib import Path
 
 
 class RemovalService:
-
     EXTENSIONS = (".json", ".wasm", ".aot")
+
+    # Package names that should never be removed
+    PROTECTED_PACKAGES = {
+        "obervave",
+    }
+
+    def _is_protected(self, file: Path) -> bool:
+        """
+        Returns True if the file belongs to a protected package.
+        Examples:
+            observave.json
+            observave.wasm
+            observave.aot
+        """
+        return file.stem in self.PROTECTED_PACKAGES
 
     def remove_files(
         self,
@@ -15,10 +29,18 @@ class RemovalService:
 
         for extension in self.EXTENSIONS:
             for file in firmware_dir.glob(f"*{extension}"):
-                if file.is_file():
-                    removed_or_selected.append(file)
+                if not file.is_file():
+                    continue
 
-        if library_file.is_file():
+                if self._is_protected(file):
+                    continue
+
+                removed_or_selected.append(file)
+
+        if (
+            library_file.is_file()
+            and not self._is_protected(library_file)
+        ):
             removed_or_selected.append(library_file)
 
         if not dry_run:
@@ -33,6 +55,10 @@ class RemovalService:
         package_name: str,
         dry_run: bool = True,
     ) -> list[Path]:
+        # Never remove protected packages
+        if package_name in self.PROTECTED_PACKAGES:
+            return []
+
         removed_or_selected = []
 
         for extension in self.EXTENSIONS:
