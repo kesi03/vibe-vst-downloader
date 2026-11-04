@@ -6,16 +6,16 @@ class RemovalService:
 
     # Package names that should never be removed
     PROTECTED_PACKAGES = {
-        "obervave",
+        "obervave-fm1",
     }
 
     def _is_protected(self, file: Path) -> bool:
         """
         Returns True if the file belongs to a protected package.
         Examples:
-            observave.json
-            observave.wasm
-            observave.aot
+            obervave-fm1.json
+            obervave-fm1.wasm
+            obervave-fm1.aot
         """
         return file.stem in self.PROTECTED_PACKAGES
 
