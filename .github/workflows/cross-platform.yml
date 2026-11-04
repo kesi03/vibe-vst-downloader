@@ -37,20 +37,24 @@ jobs:
         run: |
           vibe-fw --help
 
-      - name: Set Download Folder
+      - name: Set Folders
         shell: bash
         run: |
           case "${{ runner.os }}" in
             Windows)
               echo "DOWNLOADS_DIR=$APPDATA/VIBE FM/Downloads" >> $GITHUB_ENV
+              echo "FIRMWARE_DIR=$APPDATA/VIBE FM/Firmware" >> $GITHUB_ENV
               ;;
             macOS)
               echo "DOWNLOADS_DIR=$HOME/Library/Application Support/VIBE FM/Downloads" >> $GITHUB_ENV
+              echo "FIRMWARE_DIR=$HOME/Library/Application Support/VIBE FM/Firmware" >> $GITHUB_ENV
               ;;
             Linux)
               echo "DOWNLOADS_DIR=$HOME/.local/share/VIBE FM/Downloads" >> $GITHUB_ENV
+              echo "FIRMWARE_DIR=$HOME/.local/share/VIBE FM/Firmware" >> $GITHUB_ENV
               ;;
           esac
+          
 
       - name: Download Firmware
         shell: bash
@@ -72,3 +76,30 @@ jobs:
           fi
 
           echo "Found $ZIP_COUNT downloaded package(s)"
+
+      - name: Remove Install
+        shell: bash
+        run: |
+          vibe-fw install
+
+      - name: Remove Firmware
+        shell: bash
+        run: |
+          vibe-fw remove
+
+      - name: Verify if oberverv
+        shell: bash
+        run: |
+          echo "Checking: $FIRMWARE_DIR"
+
+          find "$FIRMWARE_DIR" -type f
+
+          WASM_COUNT=$(find "$FIRMWARE_DIR" -name "*.wasm" | wc -l)
+
+          if [ "$WASM_COUNT" -eq 0 ]; then
+            echo "No firmware packages downloaded"
+            exit 1
+          fi
+
+          echo "Found $WASM_COUNT firmwares"
+
