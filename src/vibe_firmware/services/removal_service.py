@@ -23,7 +23,7 @@ class RemovalService:
         self,
         firmware_dir: Path,
         library_file: Path,
-        dry_run: bool = True,
+        dry_run: bool = False,
     ) -> list[Path]:
         removed_or_selected = []
 
