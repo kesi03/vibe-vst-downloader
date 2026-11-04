@@ -77,7 +77,7 @@ jobs:
 
           echo "Found $ZIP_COUNT downloaded package(s)"
 
-      - name: Remove Install
+      - name: Install Firmware
         shell: bash
         run: |
           vibe-fw install
@@ -87,7 +87,7 @@ jobs:
         run: |
           vibe-fw remove
 
-      - name: Verify if oberverv
+      - name: Verify if obervave still there
         shell: bash
         run: |
           echo "Checking: $FIRMWARE_DIR"
